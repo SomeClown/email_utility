@@ -31,7 +31,7 @@ def cli():
     pass
 
 
-def load_email_from_file(filename: str):
+def content_from_file(filename: str):
     """
     Load email content from a file
     :param filename: 
@@ -40,6 +40,7 @@ def load_email_from_file(filename: str):
     with open(filename) as f:
         content = f.read()
     return content
+
 
 @click.command(short_help='Email wizardry')
 @click.option('-f', '--from', 'from_addr', help='from address')
@@ -50,7 +51,8 @@ def load_email_from_file(filename: str):
 @click.option('-u', '--user', 'user_name', help='account username')
 @click.option('-p', '--pwd', 'pwd', help='pwd')
 @click.option('--sp', 'smtp_port', help='outgoing port')
-def do_normal_email(from_addr: str, to_addr: str, sub: str, body: str, account: str, pwd: str, user_name: str, smtp_port=587):
+def do_normal_email(from_addr: str, to_addr: str, sub: str, body: str,
+                    account: str, pwd: str, user_name: str, smtp_port=587):
     """
     
     Sends an email (this is mostly for testing. The Exchange stuff below is what I'm mostly developing)
@@ -85,7 +87,8 @@ def do_normal_email(from_addr: str, to_addr: str, sub: str, body: str, account: 
 @click.option('-a', '--act', 'account', help='account')
 @click.option('-u', '--user', 'user_name', help='account username')
 @click.option('-p', '--pwd', 'pwd', help='pwd')
-def get_exchange_email(from_addr: str, account: str, pwd: str, user_name: str):
+@click.option('-n', '--num', 'num_emails', help='number of emails')
+def get_exchange_email(from_addr: str, account: str, pwd: str, user_name: str, num_emails: int):
     """
 
     Gets email with Exchange
@@ -94,13 +97,16 @@ def get_exchange_email(from_addr: str, account: str, pwd: str, user_name: str):
     :param account:
     :param pwd:
     :param user_name:
+    :param num_emails:
     :return: 
     """
+    if not num_emails:
+        num_emails = 10
     creds = Credentials(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
                       autodiscover=False, access_type=DELEGATE, config=config)
-    for item in account.inbox.all().order_by('-datetime_received')[:10]:
+    for item in account.inbox.all().order_by('-datetime_received')[:int(num_emails)]:
         print(item.subject, item.sender, item.datetime_received)
 
 
@@ -130,7 +136,7 @@ def send_exchange_email(from_addr: str, to_addr: str, sub: str, body: str,
     :return: 
     """
     if file:
-        body = load_email_from_file(file)
+        body = content_from_file(file)
         print(body)
     else:
         pass
