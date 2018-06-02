@@ -42,6 +42,24 @@ def content_from_file(filename: str):
     return content
 
 
+def spreadsheet_data(spreadsheet_name, sheet_name):
+    """
+    Get names and other data from an Excel file
+    :param spreadsheet_name:
+    :param sheet_name:
+    :return: 
+    """
+    import pandas as pd
+    df = pd.read_excel(spreadsheet_name, sheet_name)
+    people_list = []
+    for i in df.index:
+        people = {'First_Name': df['First_Name'][i], 'Last_Name': df['Last_Name'][i],
+                  'Middle_Initial': df['Middle_Initial'][i], 'Email_Address': df['Email_Address'][i],
+                  'Phone': df['Phone'][i], 'City': df['City'][i], 'State': df['State'][i]}
+        people_list.append(people)
+    return people_list
+
+
 @click.command(short_help='Email wizardry')
 @click.option('-f', '--from', 'from_addr', help='from address')
 @click.option('-t', '--to', 'to_addr', help='to address')
@@ -118,9 +136,8 @@ def get_exchange_email(from_addr: str, account: str, pwd: str, user_name: str, n
 @click.option('-a', '--act', 'account', help='account')
 @click.option('-u', '--user', 'user_name', help='account username')
 @click.option('-p', '--pwd', 'pwd', help='pwd')
-@click.option('--file', 'file', help='file')
 def send_exchange_email(from_addr: str, to_addr: str, sub: str, body: str,
-                        account: str, pwd: str, user_name: str, file: str):
+                        account: str, pwd: str, user_name: str):
     """
 
     Sends email using Exchange
@@ -132,14 +149,8 @@ def send_exchange_email(from_addr: str, to_addr: str, sub: str, body: str,
     :param account:
     :param pwd:
     :param user_name:
-    :param file:
     :return: 
     """
-    if file:
-        body = content_from_file(file)
-        print(body)
-    else:
-        pass
     creds = Credentials(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
@@ -152,9 +163,59 @@ def send_exchange_email(from_addr: str, to_addr: str, sub: str, body: str,
         to_recipients=[Mailbox(email_address=to_addr)])
     msg.send_and_save()
 
+
+@click.command(short_help='Bulk Email wizardry')
+@click.option('-f', '--from', 'from_addr', help='from address')
+@click.option('-s', '--subject', 'sub', help='subject')
+@click.option('-a', '--act', 'account', help='account')
+@click.option('-u', '--user', 'user_name', help='account username')
+@click.option('-p', '--pwd', 'pwd', help='pwd')
+@click.option('-c', '--content', 'content_file', help='file')
+@click.option('--names', 'names_list', help='names list')
+@click.option('--sheet', 'sheet', help='Excel Sheet')
+@click.option('--signature', 'signature', help='Closing signature')
+def bulk_send_exchange_email(from_addr: str, sub: str, account: str,
+                             pwd: str, user_name: str, names_list: str,
+                             content_file: str, sheet: str, signature: str):
+    """
+
+    Sends email using Exchange
+
+    :param from_addr: 
+    :param sub: 
+    :param account:
+    :param pwd:
+    :param user_name:
+    :param content_file:
+    :param names_list:
+    :param sheet:
+    :param signature:
+    :return: 
+    """
+    recipients = spreadsheet_data(names_list, sheet)
+    body = content_from_file(content_file)
+    signature = content_from_file(signature)
+    for item in recipients:
+        complete_email = 'Hello ' + item['First_Name'] + ',\n\n' + body + '\n' + signature
+        print('Send to: ' + item['Email_Address'] + '\n' + complete_email)
+    """
+    creds = Credentials(user_name, pwd)
+    config = Configuration(server=account, credentials=creds)
+    account = Account(primary_smtp_address=from_addr,
+                      autodiscover=False, access_type=DELEGATE, config=config)
+    msg = Message(
+        account=account,
+        folder=account.sent,
+        subject=sub,
+        body=body,
+        to_recipients=[Mailbox(email_address=to_addr)])
+    msg.send_and_save()
+    """
+
 cli.add_command(do_normal_email, 'email')
 cli.add_command(get_exchange_email, 'get_exchange')
 cli.add_command(send_exchange_email, 'send_exchange')
+cli.add_command(bulk_send_exchange_email, 'bulk_send')
 
 if __name__ == '__main__':
     cli()
