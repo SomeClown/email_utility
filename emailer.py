@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 
 """
-Emailer CLI
+
+Email CLI
+
+This mostly exists because I needed to send bulk emails to people and I didn't like the existing
+solutions available, and because many of the ones that would work aren't free. This is a simple
+solution for my needs. Any extra functionality beyond bulk mailing is only there because I got bored
+and figured why the hell not.
+
+Note that many of the imports below are speculative; they're there so I don't forget them
+later as I add more functionality.
+
 """
 
 import click
