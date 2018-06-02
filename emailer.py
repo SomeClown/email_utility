@@ -195,22 +195,21 @@ def bulk_send_exchange_email(from_addr: str, sub: str, account: str,
     recipients = spreadsheet_data(names_list, sheet)
     body = content_from_file(content_file)
     signature = content_from_file(signature)
-    for item in recipients:
-        complete_email = 'Hello ' + item['First_Name'] + ',\n\n' + body + '\n' + signature
-        print('Send to: ' + item['Email_Address'] + '\n' + complete_email)
-    """
     creds = Credentials(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
                       autodiscover=False, access_type=DELEGATE, config=config)
-    msg = Message(
-        account=account,
-        folder=account.sent,
-        subject=sub,
-        body=body,
-        to_recipients=[Mailbox(email_address=to_addr)])
-    msg.send_and_save()
-    """
+    for item in recipients:
+        complete_email = 'Hello ' + item['First_Name'] + '\n\n' + body + '\n' + signature
+        email_address = item['Email_Address']
+        msg = Message(
+            account=account,
+            folder=account.sent,
+            subject=sub,
+            body=complete_email,
+            to_recipients=[Mailbox(email_address=email_address)])
+        #print(repr(msg))
+        msg.send_and_save()
 
 cli.add_command(do_normal_email, 'email')
 cli.add_command(get_exchange_email, 'get_exchange')
