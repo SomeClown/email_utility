@@ -14,6 +14,8 @@ later as I add more functionality.
 
 """
 
+import logging
+import pprint
 import click
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -22,6 +24,7 @@ from exchangelib import DELEGATE, IMPERSONATION, Account, Credentials, ServiceAc
     EWSDateTime, EWSTimeZone, Configuration, NTLM, GSSAPI, CalendarItem, Message, \
     Mailbox, Attendee, Q, ExtendedProperty, FileAttachment, ItemAttachment, \
     HTMLBody, Build, Version, FolderCollection
+from exchangelib.util import PrettyXmlHandler
 
 __author__ = "SomeClown"
 __license__ = "MIT"
@@ -128,9 +131,12 @@ def get_exchange_email(from_addr: str, account: str, pwd: str, user_name: str, n
     :param num_emails:
     :return: 
     """
+    logging.basicConfig(level=logging.INFO, handlers=[PrettyXmlHandler()])
     if not num_emails:
         num_emails = 10
-    creds = Credentials(user_name, pwd)
+    else:
+        pass
+    creds = ServiceAccount(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
                       autodiscover=False, access_type=DELEGATE, config=config)
@@ -161,7 +167,7 @@ def send_exchange_email(from_addr: str, to_addr: str, sub: str, body: str,
     :param user_name:
     :return: 
     """
-    creds = Credentials(user_name, pwd)
+    creds = ServiceAccount(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
                       autodiscover=False, access_type=DELEGATE, config=config)
@@ -205,7 +211,7 @@ def bulk_send_exchange_email(from_addr: str, sub: str, account: str,
     recipients = spreadsheet_data(names_list, sheet)
     body = content_from_file(content_file)
     signature = content_from_file(signature)
-    creds = Credentials(user_name, pwd)
+    creds = ServiceAccount(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
                       autodiscover=False, access_type=DELEGATE, config=config)
@@ -221,10 +227,37 @@ def bulk_send_exchange_email(from_addr: str, sub: str, account: str,
         #print(repr(msg))
         msg.send_and_save()
 
+
+@click.command(short_help='Out of Office Wizardry')
+@click.option('-u', '--user', 'user_name', help='account username')
+@click.option('-p', '--pwd', 'pwd', help='pwd')
+@click.option('-a', '--act', 'account', help='account')
+@click.option('-f', '--from', 'from_addr', help='from address')
+def oof(user_name: str, pwd: str, account: str, from_addr: str):
+    """
+    
+    Various out of office shenanigans
+    
+    :param user_name: 
+    :param pwd: 
+    :param account:
+    :param from_addr:
+    :return: 
+    """
+    logging.basicConfig(level=logging.INFO, handlers=[PrettyXmlHandler()])
+    creds = ServiceAccount(user_name, pwd)
+    config = Configuration(server=account, credentials=creds)
+    account = Account(primary_smtp_address=from_addr,
+                      autodiscover=False, access_type=DELEGATE, config=config)
+    current_settings = account.oof_settings
+    print(current_settings)
+
+
 cli.add_command(do_normal_email, 'email')
 cli.add_command(get_exchange_email, 'get_exchange')
 cli.add_command(send_exchange_email, 'send_exchange')
 cli.add_command(bulk_send_exchange_email, 'bulk_send')
+cli.add_command(oof, 'oof')
 
 if __name__ == '__main__':
     cli()
