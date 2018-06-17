@@ -15,7 +15,6 @@ later as I add more functionality.
 """
 
 import logging
-import pprint
 import click
 import smtplib
 from email.mime.multipart import MIMEMultipart
