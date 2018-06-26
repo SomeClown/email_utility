@@ -24,6 +24,7 @@ from exchangelib import DELEGATE, IMPERSONATION, Account, Credentials, ServiceAc
     Mailbox, Attendee, Q, ExtendedProperty, FileAttachment, ItemAttachment, \
     HTMLBody, Build, Version, FolderCollection
 from exchangelib.util import PrettyXmlHandler
+import yaml
 
 __author__ = "SomeClown"
 __license__ = "MIT"
@@ -32,6 +33,20 @@ __email__ = "teren@wwt.com"
 
 EPILOG = 'Don\'t do anything I wouldn\'t do'
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+
+def load_config(account_name: str):
+    """
+    
+    :param account_name: 
+    :return: 
+    """
+    with open(account_name, 'r') as account_config:
+        settings = yaml.load(account_config)
+        account_address = settings['account_address']
+        account_name = settings['account_name']
+        account_username = settings['account_username']
+        account_password = settings['account_password']
 
 
 @click.group(epilog=EPILOG, context_settings=CONTEXT_SETTINGS)
