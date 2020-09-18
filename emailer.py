@@ -19,7 +19,7 @@ import click
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from exchangelib import DELEGATE, IMPERSONATION, Account, Credentials, ServiceAccount, \
+from exchangelib import DELEGATE, IMPERSONATION, Account, Credentials, \
     EWSDateTime, EWSTimeZone, Configuration, NTLM, GSSAPI, CalendarItem, Message, \
     Mailbox, Attendee, Q, ExtendedProperty, FileAttachment, ItemAttachment, \
     HTMLBody, Build, Version, FolderCollection
@@ -150,10 +150,10 @@ def get_exchange_email(from_addr: str, account: str, pwd: str, user_name: str, n
         num_emails = 10
     else:
         pass
-    creds = ServiceAccount(user_name, pwd)
+    creds = Credentials(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
-                      autodiscover=False, access_type=DELEGATE, config=config)
+                      autodiscover=True, access_type=DELEGATE, config=config)
     for item in account.inbox.all().order_by('-datetime_received')[:int(num_emails)]:
         print(item.subject, item.sender, item.datetime_received)
 
@@ -181,7 +181,7 @@ def send_exchange_email(from_addr: str, to_addr: str, sub: str, body: str,
     :param user_name:
     :return: 
     """
-    creds = ServiceAccount(user_name, pwd)
+    creds = Credentials(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
                       autodiscover=False, access_type=DELEGATE, config=config)
@@ -225,7 +225,7 @@ def bulk_send_exchange_email(from_addr: str, sub: str, account: str,
     recipients = spreadsheet_data(names_list, sheet)
     body = content_from_file(content_file)
     signature = content_from_file(signature)
-    creds = ServiceAccount(user_name, pwd)
+    creds = Credentials(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
                       autodiscover=False, access_type=DELEGATE, config=config)
@@ -259,7 +259,7 @@ def oof(user_name: str, pwd: str, account: str, from_addr: str):
     :return: 
     """
     logging.basicConfig(level=logging.INFO, handlers=[PrettyXmlHandler()])
-    creds = ServiceAccount(user_name, pwd)
+    creds = Credentials(user_name, pwd)
     config = Configuration(server=account, credentials=creds)
     account = Account(primary_smtp_address=from_addr,
                       autodiscover=False, access_type=DELEGATE, config=config)
