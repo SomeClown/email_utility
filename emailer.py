@@ -19,10 +19,8 @@ import click
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from exchangelib import DELEGATE, IMPERSONATION, Account, Credentials, \
-    EWSDateTime, EWSTimeZone, Configuration, NTLM, GSSAPI, CalendarItem, Message, \
-    Mailbox, Attendee, Q, ExtendedProperty, FileAttachment, ItemAttachment, \
-    HTMLBody, Build, Version, FolderCollection
+from exchangelib import DELEGATE, Account, Credentials, \
+    Configuration, Message, Mailbox
 from exchangelib.util import PrettyXmlHandler
 import yaml
 
@@ -238,7 +236,6 @@ def bulk_send_exchange_email(from_addr: str, sub: str, account: str,
             subject=sub,
             body=complete_email,
             to_recipients=[Mailbox(email_address=email_address)])
-        #print(repr(msg))
         msg.send_and_save()
 
 
